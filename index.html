@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Joke Jar</title>
+<meta name="description" content="Your personal joke library. Works offline.">
+<meta name="theme-color" content="#faf7f2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17140f" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Joke Jar">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="stylesheet" href="app.css">
+<script type="module" src="app.js"></script>
+</head>
+<body>
+<div class="app">
+  <header>
+    <h1>🫙 Joke Jar</h1>
+    <span class="badge" id="net"></span>
+  </header>
+
+  <!-- PLAY -->
+  <section id="v-play">
+    <label class="pool">From
+      <select id="pool"></select>
+    </label>
+    <div class="card joke-card">
+      <div class="cat" id="p-cat"></div>
+      <div class="setup" id="p-setup"></div>
+      <div class="punch hidden" id="p-punch" title="Tap to reveal"></div>
+      <div class="spacer"></div>
+      <a class="source hide" id="p-source" target="_blank" rel="noopener noreferrer"></a>
+    </div>
+
+    <div id="manual">
+      <div class="row">
+        <button class="btn grow" id="b-prev">◀︎ Back</button>
+        <button class="btn primary grow" id="b-speak">🔊 Read aloud</button>
+        <button class="btn grow" id="b-random">🎲 Random</button>
+      </div>
+      <div class="row">
+        <button class="btn grow" id="b-reveal">👀 Reveal</button>
+        <button class="btn grow" id="b-fav">☆ Favourite</button>
+        <button class="btn grow" id="b-edit">✏️ Edit</button>
+      </div>
+      <button class="btn wide hands" id="b-hands">🎧 Start hands-free mode</button>
+    </div>
+
+    <div id="hf" class="hf hide">
+      <div class="hf-status" id="hf-status"></div>
+      <div class="row">
+        <button class="btn primary grow big" id="hf-pause">⏸ Pause</button>
+        <button class="btn grow big" id="hf-skip">⏭ Skip</button>
+        <button class="btn grow big" id="hf-stop">⏹ Stop</button>
+      </div>
+      <div class="row">
+        <button class="btn grow" id="hf-fav">☆ Favourite</button>
+      </div>
+    </div>
+    <p class="meta" id="p-meta"></p>
+  </section>
+
+  <!-- LIBRARY -->
+  <section id="v-lib" class="hide">
+    <input class="search" id="q" type="search" placeholder="Search jokes…" autocomplete="off">
+    <div class="chips" id="chips"></div>
+    <div class="list" id="list"></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="v-set" class="hide settings">
+    <div class="card">
+      <h3>Voice</h3>
+      <label>Voice <select id="s-voice"></select></label>
+      <label><span>Speed · <span class="val" id="s-rate-v"></span></span>
+        <input type="range" id="s-rate" min="0.6" max="1.4" step="0.05"></label>
+      <label><span>Pause before punchline · <span class="val" id="s-pause-v"></span></span>
+        <input type="range" id="s-pause" min="0" max="4" step="0.25"></label>
+      <label><span>Gap between jokes (hands-free) · <span class="val" id="s-gap-v"></span></span>
+        <input type="range" id="s-gap" min="1" max="15" step="1"></label>
+      <button class="btn" id="b-test">🔊 Test voice</button>
+    </div>
+    <div class="card">
+      <h3>Backup &amp; import</h3>
+      <div class="row">
+        <button class="btn grow" id="b-export">⬇︎ Export jokes</button>
+        <button class="btn grow" id="b-import">⬆︎ Import jokes</button>
+        <input type="file" id="f-import" accept=".json,application/json" class="hide">
+      </div>
+      <p class="note">Jokes are stored only on this device. To copy them to another device, export them here and import the file there (AirDrop or iCloud Drive work well). When you import, jokes you already have are skipped.</p>
+    </div>
+    <div class="card">
+      <h3>Danger zone</h3>
+      <div class="row">
+        <button class="btn danger" id="b-samples">Add sample jokes</button>
+        <button class="btn danger" id="b-wipe">Delete all jokes</button>
+      </div>
+    </div>
+    <p class="note center" id="ver"></p>
+  </section>
+</div>
+
+<nav class="tabs"><div class="inner">
+  <button data-v="play" class="on"><span>🎲</span>Play</button>
+  <button data-v="lib"><span>📚</span>Library</button>
+  <button data-v="add"><span>➕</span>Add</button>
+  <button data-v="set"><span>⚙︎</span>Settings</button>
+</div></nav>
+
+<dialog id="dlg">
+  <form class="edit" id="form">
+    <h2 id="f-title">Add a joke</h2>
+    <label>Setup / joke <textarea id="f-setup" required placeholder="Why don't skeletons fight each other?"></textarea></label>
+    <label><span>Punchline <em>(optional)</em></span> <textarea id="f-punch" placeholder="They don't have the guts."></textarea></label>
+    <label>Category <input type="text" id="f-cat" list="cats" placeholder="Puns" autocomplete="off"></label>
+    <datalist id="cats"></datalist>
+    <label><span>Source link <em>(optional, e.g. a YouTube video)</em></span>
+      <input type="url" id="f-source" placeholder="https://youtu.be/…?t=95" autocomplete="off"></label>
+    <label class="check"><input type="checkbox" id="f-fav"> ★ Favourite</label>
+    <div class="row">
+      <button type="button" class="btn danger hide" id="f-del">🗑 Delete</button>
+      <div class="spacer"></div>
+      <button type="button" class="btn" id="f-cancel">Cancel</button>
+      <button type="submit" class="btn primary">Save</button>
+    </div>
+  </form>
+</dialog>
+
+<div class="toast" id="toast" role="status"></div>
+</body>
+</html>
